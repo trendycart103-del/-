@@ -1,0 +1,42 @@
+name: Extract ZIP
+
+on:
+  workflow_dispatch:
+    inputs:
+      zip_name:
+        description: "ZIP ফাইলের নাম"
+        default: "triperhisab-github.zip"
+  push:
+    paths:
+      - "*.zip"
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract ZIP
+        run: |
+          ZIP="${{ github.event.inputs.zip_name }}"
+          if [ -z "$ZIP" ]; then ZIP=$(ls *.zip | head -n 1); fi
+          mkdir -p /tmp/x
+          unzip -oq "$ZIP" -d /tmp/x
+          if [ "$(ls -A /tmp/x | wc -l)" -eq 1 ] && [ -d /tmp/x/* ]; then
+            SRC=$(echo /tmp/x/*)
+          else
+            SRC=/tmp/x
+          fi
+          rsync -a --exclude='.github' "$SRC"/ ./
+          rm -f "$ZIP"
+
+      - name: Commit extracted files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "Extract ZIP"
+          git push
