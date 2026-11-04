@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>হাজিরা ও হিসাব</title>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--ink:#182230;--muted:#65758b;--brand:#1769e0;--green:#138a58;--line:#e3e9f2;--red:#c62828}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans Bengali",sans-serif}
+header{background:linear-gradient(135deg,#1258c9,#3188f4);color:white;padding:22px 16px 18px}
+header h1{margin:0;font-size:24px}
+header p{margin:6px 0 0;opacity:.9;font-size:13px}
+nav{display:flex;gap:8px;padding:12px;overflow:auto;background:#fff;position:sticky;top:0;z-index:5;box-shadow:0 2px 8px #172b4d0b}
+nav button{white-space:nowrap;border:0;border-radius:11px;padding:11px 14px;background:#edf3fc;color:#23456d;font-weight:700}
+nav button.active{background:var(--brand);color:#fff}
+main{max-width:1000px;margin:auto;padding:14px}
+.page{display:none}
+.page.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 5px 18px #16345b08}
+h2{font-size:19px;margin:0 0 14px}
+h3{font-size:16px;margin:0 0 10px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+label{display:block;font-size:13px;font-weight:700;color:#43536a;margin-bottom:6px}
+input,select,textarea{width:100%;padding:11px 10px;border:1px solid #ccd7e5;border-radius:10px;background:#fff;color:var(--ink);font:inherit;min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid #b7d3ff;border-color:var(--brand)}
+.btn{border:0;border-radius:10px;padding:11px 14px;font-weight:750;background:var(--brand);color:#fff;cursor:pointer}
+.btn.secondary{background:#eaf1fc;color:#174d9c}
+.btn.green{background:var(--green)}
+.btn.red{background:#fff0f0;color:var(--red);border:1px solid #ffd3d3}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:14px}
+.stats:has(#reportDriverComm),.stats:has(#weekDriverComm){grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:620px){.stats:has(#reportDriverComm),.stats:has(#weekDriverComm){grid-template-columns:1fr 1fr}}
+.stat{padding:13px;border-radius:13px;background:#edf4ff}
+.stat span{display:block;font-size:12px;color:var(--muted)}
+.stat strong{display:block;font-size:20px;margin-top:4px;overflow-wrap:anywhere}
+.table-wrap{overflow:auto}
+table{border-collapse:collapse;width:100%;min-width:620px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);font-size:13px}
+th{background:#f5f8fd;color:#40516a}
+.worker-row{display:block;border-bottom:1px solid var(--line);padding:8px 0}
+.worker-row details{border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}
+.worker-row summary{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px;font-weight:800;cursor:pointer;list-style:none}
+.worker-row summary::-webkit-details-marker{display:none}
+.worker-row summary:after{content:'＋';color:var(--brand);font-size:18px}
+.worker-row details[open] summary:after{content:'−'}
+.worker-name{font-weight:800}
+.worker-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0 10px 12px}
+.worker-actions{display:flex;gap:8px;flex-wrap:wrap;padding:0 10px 12px}
+@media(max-width:620px){.worker-fields{grid-template-columns:1fr 1fr}.worker-fields label{font-size:12px}}
+.trip-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:stretch}
+.trip-box{border:1px solid #dce6f4;border-radius:10px;padding:8px;background:#fbfdff;min-width:0;display:flex;flex-direction:column}
+.trip-box h3{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin:0 0 6px;gap:4px}
+.trip-check{display:flex;align-items:center;gap:5px;margin:5px 0 7px;font-size:11px;font-weight:700;color:#1769e0}.trip-check input{width:16px;height:16px;flex:0 0 16px;padding:0;margin:0;accent-color:#138a58}
+.badge{background:#e5efff;color:#1559b8;border-radius:20px;padding:3px 5px;font-size:10px;white-space:nowrap}
+.trip-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.trip-fields label{font-size:11px;margin-bottom:3px;line-height:1.3}
+.trip-fields input,.trip-fields select{padding:7px 5px;font-size:12px;border-radius:7px;height:34px}
+.trip-fields .total-band{padding:7px;font-size:11px;gap:4px;min-width:0}
+.trip-fields .total-band strong{font-size:12px;overflow-wrap:anywhere}
+.trip-fields .wide{grid-column:1/-1}
+.note{font-size:12px;color:var(--muted);line-height:1.5}
+.total-band{display:flex;justify-content:space-between;gap:12px;align-items:center;background:#eaf8f1;border-radius:12px;padding:14px;font-weight:800}
+.trip-day{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px;background:#fff}
+.trip-day-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.trip-day-head h3{margin:0}
+.trip-day-list{display:grid;gap:8px}
+.trip-entry{border:1px solid #dce6f4;border-radius:10px;padding:9px;background:#fbfdff}
+.trip-entry h4{margin:0 0 8px;font-size:13px}
+.trip-day-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.trip-saved-list{display:grid;gap:6px;margin:8px 0}
+.trip-saved-item{padding:9px 10px;background:#f2f6fc;border-radius:9px;font-weight:800;font-size:13px;line-height:1.6}
+.trip-saved-item strong{color:#1258c9}
+.empty{color:var(--muted);font-size:13px;padding:12px 0}
+@media(max-width:620px){
+header h1{font-size:21px}
+.grid{grid-template-columns:1fr}
+.trip-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.stats{grid-template-columns:1fr 1fr}
+.trip-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+main{padding:10px}
+.card{padding:13px}
+}
+
+.worker-row{border-bottom:0;padding:5px 0}
+.worker-row details{border:1.5px solid #cfdcf0;border-radius:14px}
+.worker-row summary{display:grid;grid-template-columns:1fr auto;column-gap:10px;align-items:center;padding:14px 14px}
+.worker-row summary:after{grid-column:2;grid-row:1/span 2;font-size:26px;font-weight:900}
+.worker-name{grid-column:1;font-size:22px;font-weight:900;color:#0b1730;line-height:1.35;overflow-wrap:anywhere}
+.worker-hint{grid-column:1;font-size:13px;font-weight:700;color:#1769e0}
+@media(max-width:620px){.worker-name{font-size:21px}}
+</style>
+</head>
+<body>
+
+<header>
+<h1>📒 হাজিরা ও কাজের হিসাব</h1>
+<p>হাজিরা, বেতন ও ট্রিপের হিসাব আলাদা পেজে • তথ্য এই ব্রাউজারে অটো-সেভ হবে</p>
+</header>
+
+<nav>
+<button class="active" data-page="attendance">👷 হাজিরা ও বেতন</button>
+<button data-page="trips">🚚 ট্রিপ পেজ</button>
+<button data-page="report">📊 সাপ্তাহিক রিপোর্ট</button>
+<button data-page="backup">💾 ব্যাকআপ</button>
+</nav>
+
+<main>
+<section id="attendance" class="page active">
+<div class="stats">
+<div class="stat"><span>আজকের মোট বেতন</span><strong id="todayWage">৳০</strong></div>
+<div class="stat"><span>আজ উপস্থিত</span><strong id="presentCount">০ জন</strong></div>
+<div class="stat"><span>মোট অগ্রিম</span><strong id="advanceTotal">৳০</strong></div>
+</div>
+
+<div class="card">
+<h2>দৈনিক হাজিরা ও বেতন</h2>
+<p class="note">নামে চাপ দিলে হাজিরা, দৈনিক মজুরি ও অগ্রিমের ঘর খুলবে। অনুপস্থিত হলে হাজিরা “অনুপস্থিত” নির্বাচন করুন। হিসাব আজকের তারিখে সেভ হবে।</p>
+<div id="workerList"></div>
+<div class="actions">
+<button class="btn" id="saveAttendance">হাজিরা সেভ করুন</button>
+</div>
+</div>
+
+<div class="card">
+<h2>এই তারিখের এন্ট্রি <span id="entryDate" class="note"></span></h2>
+<div id="attendanceRows" class="trip-saved-list"></div>
+</div>
+</section>
+
+<section id="trips" class="page">
+<div class="stats">
+<div class="stat"><span>মোট ট্রিপ/গাড়ি</span><strong id="tripCount">০</strong></div>
+<div class="stat"><span>মোট ট্রিপ খরচ</span><strong id="tripCost">৳০</strong></div>
+<div class="stat"><span>টোটাল লেবার কস্ট</span><strong id="laborCost">৳০</strong></div>
+</div>
+
+<div class="card">
+<h2>🚚 সপ্তাহের ট্রিপের হিসাব</h2>
+<p class="note">বৃহস্পতিবার থেকে বুধবার পর্যন্ত প্রতিটি দিনের হিসাব আলাদা করে লিখুন। দিনের নাম থাকবে; দিনের পাশে তারিখ দেখানো হবে না।</p>
+<div id="tripWeekDays" class="trip-week-days" style="margin-top:14px"></div>
+
+<div class="total-band">
+<span>সব ট্রিপের মোট খরচ</span>
+<strong id="tripGrandTotal">৳০</strong>
+</div>
+
+<div class="actions">
+<button class="btn green" id="saveTrips">সব ট্রিপ সেভ করুন</button>
+<button class="btn secondary" id="clearTrips">সব ট্রিপের বক্স খালি করুন</button>
+</div>
+</div>
+
+<div class="card">
+<h2>📅 সাত দিনের ট্রিপের সংক্ষিপ্ত হিসাব</h2>
+<div class="stats">
+<div class="stat"><span>সাত দিনের মোট ভাড়া</span><strong id="weekFareTotal">৳০</strong></div>
+<div class="stat"><span>সাত দিনের মোট লেবার খরচ</span><strong id="weekLaborTotal">৳০</strong></div>
+<div class="stat"><span>লেবার বাদে অবশিষ্ট</span><strong id="weekNetTotal">৳০</strong></div>
+<div class="stat"><span>ড্রাইভার কমিশন (১৫%)</span><strong id="weekDriverComm">৳০</strong></div>
+</div>
+<div class="table-wrap"><table>
+<thead><tr><th>দিন</th><th>মোট ভাড়া</th><th>লেবার খরচ</th><th>অবশিষ্ট টাকা</th><th>ট্রিপ</th></tr></thead>
+<tbody id="tripDailyRows"></tbody>
+</table></div>
+</div>
+
+<div class="card">
+<h2>সেভ করা ট্রিপের বিস্তারিত</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>তারিখ</th><th>নং</th><th>মালামাল</th><th>গন্তব্য</th><th>ট্রিপ</th><th>প্রতি ট্রিপ</th><th>লেবার খরচ</th><th>মোট</th><th>সেভের সময়</th><th></th></tr>
+</thead>
+<tbody id="tripRows"></tbody>
+</table>
+</div>
+</div>
+</section>
+
+<section id="report" class="page">
+<div class="card">
+<h2>📊 গত ৭ দিনের রিপোর্ট</h2>
+<div class="total-band">
+<span>সব শ্রমিকের মোট পাওনা</span>
+<strong id="reportGrand">৳০</strong>
+</div>
+<div class="table-wrap" style="margin-top:14px">
+<table>
+<thead><tr><th>শ্রমিক</th><th>কাজের দিন</th><th>মোট বেতন</th><th>অগ্রিম</th><th>বাকি পাওনা</th></tr></thead>
+<tbody id="reportRows"></tbody>
+</table>
+</div>
+</div>
+<div class="card">
+<h2>🚚 সাত দিনের ট্রিপের হিসাব</h2>
+<div class="stats">
+<div class="stat"><span>টোটাল ভাড়া</span><strong id="reportTripFare">৳০</strong></div>
+<div class="stat"><span>লেবার খরচ</span><strong id="reportTripLabor">৳০</strong></div>
+<div class="stat"><span>লেবার বাদে অবশিষ্ট</span><strong id="reportTripNet">৳০</strong></div>
+<div class="stat"><span>ড্রাইভার কমিশন (১৫%)</span><strong id="reportDriverComm">৳০</strong></div>
+</div>
+<div class="table-wrap"><table>
+<thead><tr><th>দিন</th><th>মোট ভাড়া</th><th>লেবার খরচ</th><th>অবশিষ্ট টাকা</th></tr></thead>
+<tbody id="reportTripRows"></tbody>
+</table></div>
+</div>
+</section>
+
+<section id="backup" class="page">
+<div class="card">
+<h2>💾 ডেটা ব্যাকআপ ও রিস্টোর</h2>
+<p>এই অ্যাপ আপনার বর্তমান ব্রাউজারের লোকাল স্টোরেজে তথ্য রাখে। ব্রাউজারের ডেটা মুছে গেলে তথ্য হারাতে পারে, তাই নিয়মিত ব্যাকআপ ডাউনলোড করুন। Google Sheets-এ এখনো স্বয়ংক্রিয় সংযোগ করা নেই।</p>
+<div class="actions">
+<button class="btn" id="exportJson">JSON ব্যাকআপ ডাউনলোড</button>
+<button class="btn secondary" id="exportCsv">হাজিরার CSV ডাউনলোড</button>
+</div>
+<div style="margin-top:18px">
+<label for="importFile">আগের JSON ব্যাকআপ ফিরিয়ে আনুন</label>
+<input id="importFile" type="file" accept=".json,application/json">
+<p class="note">রিস্টোর করলে বর্তমান ডেটা ব্যাকআপের ডেটা দিয়ে প্রতিস্থাপিত হবে। তার আগে বর্তমান ডেটার একটি নিরাপদ কপি নিজে থেকে ডাউনলোড হবে এবং ব্রাউজারেও রাখা হবে।</p>
+</div>
+<div class="actions">
+<button class="btn red" id="wipeData">সব ডেটা মুছে ফেলুন</button>
+</div>
+</div>
+</section>
+
+<footer class="note" style="text-align:center;padding:8px 0 24px">
+ব্যক্তিগত অফলাইন সংস্করণ • ডেটা সেভ হলে নিচে বার্তা দেখাবে
+</footer>
+</main>
+
+<div id="toast" style="position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#172b4d;color:white;padding:11px 16px;border-radius:12px;display:none;z-index:20;max-width:90%;font-size:14px"></div>
+
+<script>
+const DEFAULT_WORKERS=['প্রনব','লালু','শরীফ','জয়নাল','রুহুল আমিন','আমিন','তারিফুল','উজ্জ্বল','হাসান','নতুন শ্রমিক'];
+const RENAME={'তারিকুল':'তারিফুল','তারেক ফুল':'তারিফুল','শোরিফ':'শরীফ'};
+let workers=DEFAULT_WORKERS.slice();
+const materials=['বালু','ইট','রড','সিমেন্ট','পাথর','মাটি','খোয়া','অন্যান্য'];
+const KEY='attendance_trip_app_v1';
+
+let db={attendance:[],trips:[]};
+
+const $=id=>document.getElementById(id);
+const money=n=>'৳'+(Number(n)||0).toLocaleString('bn-BD',{maximumFractionDigits:2});
+
+const today=()=>{
+let d=new Date();
+return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+};
+
+function toast(s){
+$('toast').textContent=s;
+$('toast').style.display='block';
+clearTimeout(window.toastTimer);
+window.toastTimer=setTimeout(()=>$('toast').style.display='none',2400);
+}
+
+function persist(){
+db.workers=workers;
+try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){toast('সেভ করতে সমস্যা হয়েছে')}
+renderAll();
+}
+
+const rn=n=>{n=String(n==null?'':n).trim();return RENAME[n]||n};
+const num=(v,d=0)=>{const x=Number(v);return(v===''||v==null||!Number.isFinite(x))?d:x};
+
+function mergeWorkers(extra,att){
+const out=[];
+const add=n=>{n=rn(n);if(n&&!out.includes(n))out.push(n)};
+DEFAULT_WORKERS.forEach(add);
+(Array.isArray(extra)?extra:[]).forEach(add);
+att.forEach(a=>add(a.name));
+return out;
+}
+
+function normalizeDb(d){
+const seen={};
+const att=(Array.isArray(d.attendance)?d.attendance:[]).filter(a=>a&&typeof a==='object').map(a=>{
+const name=rn(a.name),date=String(a.date||'');
+const wage=num(a.wage),advance=num(a.advance);
+let id=date+'_'+name;
+if(seen[id]){seen[id]++;id+='_'+seen[id]}else seen[id]=1;
+return{...a,id,date,name,type:a.type||'সাধারণ কাজ',present:num(a.present,1),wage,advance,net:(a.net==null||a.net==='')?wage-advance:num(a.net)};
+});
+const trips=Array.isArray(d.trips)?d.trips:[];
+return{...d,attendance:att,trips,workers:mergeWorkers(d.workers,att)};
+}
+
+function load(){
+try{
+const raw=localStorage.getItem(KEY);
+if(raw){
+if(!localStorage.getItem(KEY+'_pre_update_backup'))localStorage.setItem(KEY+'_pre_update_backup',raw);
+const d=JSON.parse(raw);
+if(d&&typeof d==='object'){
+db=normalizeDb(d);
+workers=db.workers;
+localStorage.setItem(KEY,JSON.stringify(db));
+}
+}
+}catch(e){}
+db.workers=workers;
+}
+
+function safetyCopy(label){
+try{
+localStorage.setItem(KEY+'_safe_'+Date.now(),JSON.stringify(db));
+const keys=Object.keys(localStorage).filter(k=>k.indexOf(KEY+'_safe_')===0).sort();
+keys.slice(0,Math.max(0,keys.length-5)).forEach(k=>localStorage.removeItem(k));
+}catch(e){}
+try{db.workers=workers;download('hisab-'+label+'-'+today()+'.json',JSON.stringify(db,null,2),'application/json')}catch(e){}
+}
+
+function esc(s){
+return String(s??'').replace(/[&<>"']/g,c=>({
+'&':'&amp;',
+'<':'&lt;',
+'>':'&gt;',
+'"':'&quot;',
+"'":'&#39;'
+}[c]));
+}
+
+function initWorkers(){
+$('workerList').innerHTML=workers.map((w,i)=>`
+<div class="worker-row" data-worker="${i}">
+<details>
+<summary><span class="worker-name">${esc(w)}</span><span class="worker-hint">হিসাব লিখতে চাপ দিন</span></summary>
+<div class="worker-fields">
+<div>
+<label>হাজিরা</label>
+<select class="present">
+<option value="1">উপস্থিত</option>
+<option value="0">অনুপস্থিত</option>
+<option value="0.5">অর্ধেক</option>
+</select>
+</div>
+<div>
+<label>দৈনিক মজুরি (৳)</label>
+<input class="wage" type="number" min="0" step="any" placeholder="টাকা">
+</div>
+<div>
+<label>অগ্রিম (৳)</label>
+<input class="advance" type="number" min="0" step="any" placeholder="টাকা">
+</div>
+</div>
+</details>
+</div>`).join('');
+}
+
+const weekDayNames=['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+const materialOptions=['বালু','ইট','রড','সিমেন্ট','পাথর','মাটি','খোয়া','অন্যান্য'];
+function dateStr(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function getWeekDates(){const d=new Date();d.setHours(12,0,0,0);const back=(d.getDay()-4+7)%7;d.setDate(d.getDate()-back);return Array.from({length:7},(_,i)=>{const x=new Date(d);x.setDate(d.getDate()+i);return dateStr(x)})}
+function tripGross(t){return (Number(t.quantity)||0)*(Number(t.rate)||0)}
+function tripLabor(t){return Number(t.labor)||0}
+function tripNet(t){return tripGross(t)-tripLabor(t)}
+function tripEntryHtml(date,index,t={}){return `<div class="trip-entry" data-date="${date}" data-index="${index}"><h4>নতুন ট্রিপ ${index+1}</h4><div class="trip-fields"><div><label>ট্রিপের ধরন</label><select class="material">${materialOptions.map(m=>`<option ${t.material===m?'selected':''}>${m}</option>`).join('')}</select></div><div><label>গন্তব্য</label><input class="destination" placeholder="কোথায় গেছে" value="${esc(t.destination||'')}"></div><div><label>ট্রিপের সংখ্যা</label><input class="quantity" type="number" min="0" step="any" value="${Number(t.quantity)||0}"></div><div><label>প্রতি ট্রিপের ভাড়া (৳)</label><input class="rate" type="number" min="0" step="any" value="${Number(t.rate)||0}"></div><div><label>লেবার খরচ (৳)</label><input class="labor" type="number" min="0" step="any" value="${Number(t.labor)||0}"></div><div class="total-band"><span>লেবার বাদে</span><strong class="box-total">${money(tripNet(t))}</strong></div></div></div>`}
+function tripSummaryHtml(t){return `<div class="trip-saved-item" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span><strong>${esc(t.material||'ট্রিপ')}</strong>${t.destination?' — '+esc(t.destination):''} | ${Number(t.quantity)||0} ট্রিপ | ভাড়া ${money(tripGross(t))} | লেবার ${money(tripLabor(t))} | <strong>অবশিষ্ট ${money(tripNet(t))}</strong></span><button class="btn red remove-trip" type="button" data-id="${esc(t.id)}" data-date="${esc(t.date)}" style="flex:0 0 auto;padding:7px 10px">রিমুভ</button></div>`}
+function initTrips(){renderTripWeek()}
+function renderTripWeek(){const dates=getWeekDates();$('tripWeekDays').innerHTML=dates.map(date=>{const d=new Date(date+'T12:00:00');const rows=db.trips.filter(t=>t.date===date).sort((a,b)=>(a.number||0)-(b.number||0));return `<section class="trip-day" data-day="${date}"><div class="trip-day-head"><h3>${weekDayNames[d.getDay()]}</h3><strong>${money(rows.reduce((sum,t)=>sum+tripNet(t),0))}</strong></div><div class="trip-saved-list">${rows.map(tripSummaryHtml).join('')}</div><div class="trip-day-list">${rows.length?'':tripEntryHtml(date,0)}</div><div class="trip-day-actions"><button class="btn secondary add-day-trip" type="button" data-date="${date}">＋ ট্রিপ অ্যাড করুন</button><button class="btn green save-day-trips" type="button" data-date="${date}">সেভ করুন</button></div></section>`}).join('');$('tripWeekDays').querySelectorAll('.add-day-trip').forEach(b=>b.addEventListener('click',()=>{const date=b.dataset.date,day=document.querySelector(`.trip-day[data-day="${date}"]`),list=day.querySelector('.trip-day-list');const count=db.trips.filter(t=>t.date===date).length+list.querySelectorAll('.trip-entry').length;if(count>=10){toast('একদিনে সর্বোচ্চ ১০টি ট্রিপ রাখা যাবে');return}list.insertAdjacentHTML('beforeend',tripEntryHtml(date,count));bindTripInputs(list.lastElementChild);calcTripBoxes()}));$('tripWeekDays').querySelectorAll('.save-day-trips').forEach(b=>b.addEventListener('click',()=>saveTripsForDate(b.dataset.date)));$('tripWeekDays').querySelectorAll('.trip-entry').forEach(bindTripInputs);calcTripBoxes()}
+function bindTripInputs(box){box.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',calcTripBoxes));}
+function calcTripBoxes(){let gross=0,labor=0,count=0;document.querySelectorAll('.trip-entry').forEach(b=>{const q=+b.querySelector('.quantity').value||0,r=+b.querySelector('.rate').value||0,l=+b.querySelector('.labor').value||0;gross+=q*r;labor+=l;count+=q;b.querySelector('.box-total').textContent=money(q*r-l)});$('tripGrandTotal').textContent=money(gross-labor);$('tripCost').textContent=money(gross-labor);$('tripCount').textContent=count.toLocaleString('bn-BD');$('laborCost').textContent=money(labor);document.querySelectorAll('.trip-day').forEach(day=>{const total=[...day.querySelectorAll('.trip-entry')].reduce((sum,b)=>sum+(+b.querySelector('.quantity').value||0)*(+b.querySelector('.rate').value||0)-(+b.querySelector('.labor').value||0),0)+db.trips.filter(t=>t.date===day.dataset.day).reduce((sum,t)=>sum+tripNet(t),0);day.querySelector('.trip-day-head strong').textContent=money(total)})}
+function collectTripRows(date){const existing=db.trips.filter(t=>t.date===date);const entries=[...document.querySelectorAll(`.trip-entry[data-date="${date}"]`)];const savedAt=new Date().toISOString();return entries.map((b,i)=>{const quantity=+b.querySelector('.quantity').value||0,rate=+b.querySelector('.rate').value||0,labor=+b.querySelector('.labor').value||0;return{id:date+'_trip_'+(existing.length+i+1),date,number:existing.length+i+1,material:b.querySelector('.material').value,destination:b.querySelector('.destination').value.trim(),quantity,rate,labor,total:quantity*rate-labor,savedAt}}).filter(t=>t.destination||t.quantity||t.rate||t.labor)}
+function saveTripsForDate(date){const rows=collectTripRows(date);if(!rows.length){toast('সেভ করার মতো নতুন ট্রিপের তথ্য লিখুন');return}db.trips=db.trips.concat(rows);persist();renderTripWeek();toast('এই দিনের ট্রিপ সেভ হয়েছে')}
+function saveTrips(){let rows=[];getWeekDates().forEach(date=>rows=rows.concat(collectTripRows(date)));if(!rows.length){toast('সেভ করার মতো নতুন ট্রিপের তথ্য নেই');return}db.trips=db.trips.concat(rows);persist();renderTripWeek();toast('সপ্তাহের নতুন ট্রিপ সেভ হয়েছে')}
+function loadTripsForDate(){renderTripWeek()}
+
+function saveAttendance(){
+const date=today();
+const type='সাধারণ কাজ';
+const rows=[];
+
+document.querySelectorAll('.worker-row').forEach((r,i)=>{
+const attendance=+r.querySelector('.present').value;
+const wage=(+r.querySelector('.wage').value||0)*attendance;
+const advance=+r.querySelector('.advance').value||0;
+if(wage||advance||attendance!==1){
+rows.push({id:date+'_'+workers[i],date,name:workers[i],type,present:attendance,wage,advance,net:wage-advance});
+}
+});
+
+if(!rows.length){toast('কোনো শ্রমিকের হিসাব লেখা হয়নি');return}
+const names=rows.map(r=>r.name);
+// শুধু যাদের হিসাব লেখা হয়েছে তাদের আজকের এন্ট্রি বদলাবে; অন্য কারও এন্ট্রি অক্ষত থাকবে
+db.attendance=db.attendance.filter(a=>!(a.date===date&&names.includes(a.name))).concat(rows);
+persist();
+toast('হাজিরা সেভ হয়েছে');
+}
+
+function renderAttendance(){
+const date=today();
+const rows=db.attendance.filter(a=>a.date===date);
+$('entryDate').textContent='('+new Date().toLocaleDateString('bn-BD',{day:'numeric',month:'long',year:'numeric'})+')';
+
+$('attendanceRows').innerHTML=rows.length?rows.map(a=>`<div class="trip-saved-item" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span><strong>${esc(a.name)}</strong> — ${a.present===0?'অনুপস্থিত':a.present===.5?'অর্ধেক':'উপস্থিত'} | মজুরি ${money(a.wage)} | অগ্রিম ${money(a.advance)} | <strong>পাওনা ${money(a.net)}</strong></span><button class="btn red" type="button" onclick="deleteAttendance('${esc(a.id)}')" style="flex:0 0 auto;padding:7px 10px">রিমুভ</button></div>`).join(''):'<div class="empty">এই তারিখে এখনো কোনো এন্ট্রি নেই।</div>';
+
+const wages=rows.reduce((s,a)=>s+a.wage,0);
+const adv=rows.reduce((s,a)=>s+a.advance,0);
+
+$('todayWage').textContent=money(wages);
+$('presentCount').textContent=rows.filter(a=>a.present>0).length.toLocaleString('bn-BD')+' জন';
+$('advanceTotal').textContent=money(adv);
+}
+
+function deleteAttendance(id){
+const r=db.attendance.find(a=>a.id===id);
+if(r&&!confirm('এই হাজিরাটি মুছে ফেলবেন?\n'+r.name))return;
+db.attendance=db.attendance.filter(a=>a.id!==id);
+persist();
+toast('এন্ট্রি মুছে ফেলা হয়েছে');
+}
+
+function renderTrips(){const sorted=db.trips.slice().sort((a,b)=>b.date.localeCompare(a.date)||(a.number||0)-(b.number||0));$('tripRows').innerHTML=sorted.length?sorted.map(t=>`<tr><td>${esc(t.date)}</td><td>${t.number||''}</td><td>${esc(t.material)}</td><td>${esc(t.destination)}</td><td>${t.quantity}</td><td>${money(t.rate)}</td><td>${money(tripLabor(t))}</td><td>${money(tripNet(t))}</td><td>${t.savedAt?esc(new Date(t.savedAt).toLocaleString('bn-BD')):'—'}</td><td><button class="btn red remove-trip" type="button" data-id="${esc(t.id)}" data-date="${esc(t.date)}" style="padding:7px 10px">রিমুভ</button></td></tr>`).join(''):'<tr><td colspan="10" class="empty">এখনো কোনো ট্রিপ সেভ করা হয়নি।</td></tr>';const dates=getWeekDates();let fare=0,labor=0,net=0;$('tripDailyRows').innerHTML=dates.map(date=>{const rows=db.trips.filter(t=>t.date===date),g=rows.reduce((a,t)=>a+tripGross(t),0),l=rows.reduce((a,t)=>a+tripLabor(t),0),n=g-l,c=rows.reduce((a,t)=>a+(Number(t.quantity)||0),0);fare+=g;labor+=l;net+=n;const d=new Date(date+'T12:00:00');return `<tr><td>${weekDayNames[d.getDay()]}</td><td>${money(g)}</td><td>${money(l)}</td><td>${money(n)}</td><td>${c.toLocaleString('bn-BD')}</td></tr>`}).join('');$('weekDriverComm').textContent=money(fare*0.15);$('weekFareTotal').textContent=money(fare);$('weekLaborTotal').textContent=money(labor);$('weekNetTotal').textContent=money(net);calcTripBoxes()}
+function removeTrip(id,date){
+const idx=db.trips.findIndex(t=>t.id===id&&t.date===date);
+if(idx<0){toast('ট্রিপটি খুঁজে পাওয়া যায়নি');return}
+const t=db.trips[idx];
+if(!confirm('এই ট্রিপটি মুছে ফেলবেন?\n'+date+' — '+(t.material||'')+(t.destination?' — '+t.destination:'')))return;
+db.trips.splice(idx,1);
+db.trips.filter(x=>x.date===date).sort((a,b)=>(a.number||0)-(b.number||0)).forEach((x,k)=>{x.number=k+1;x.id=date+'_trip_'+(k+1)});
+persist();renderTripWeek();toast('ট্রিপটি মুছে ফেলা হয়েছে')}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.remove-trip');if(b)removeTrip(b.dataset.id,b.dataset.date)});
+function clearTripsForDate(date){const count=db.trips.filter(t=>t.date===date).length;if(!count){toast('এই তারিখে মুছে ফেলার মতো ট্রিপের হিসাব নেই');return}if(!confirm(date+' তারিখের '+count+'টি ট্রিপের হিসাব মুছে ফেলবেন? শ্রমিকের হাজিরা ও বেতনের হিসাব মুছবে না।'))return;db.trips=db.trips.filter(t=>t.date!==date);persist();renderTripWeek();toast('এই দিনের ট্রিপের হিসাব ক্লিন হয়েছে')}
+
+function renderReport(){
+const end=today();
+const ed=new Date(end+'T12:00:00');
+const start=new Date(ed);
+start.setDate(start.getDate()-6);
+const startStr=`${start.getFullYear()}-${String(start.getMonth()+1).padStart(2,'0')}-${String(start.getDate()).padStart(2,'0')}`;
+
+let grand=0;
+
+$('reportRows').innerHTML=workers.map(w=>{
+const a=db.attendance.filter(x=>x.name===w&&x.date>=startStr&&x.date<=end);
+const days=a.reduce((s,x)=>s+x.present,0);
+const wage=a.reduce((s,x)=>s+x.wage,0);
+const adv=a.reduce((s,x)=>s+x.advance,0);
+const net=wage-adv;
+grand+=net;
+
+return `<tr>
+<td><strong>${esc(w)}</strong></td>
+<td>${days.toLocaleString('bn-BD')}</td>
+<td>${money(wage)}</td>
+<td>${money(adv)}</td>
+<td>${money(net)}</td>
+</tr>`;
+}).join('');
+
+$('reportGrand').textContent=money(grand);
+let tripFare=0,tripLaborTotal=0,tripNetTotal=0;
+$('reportTripRows').innerHTML=Array.from({length:7},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);const ds=dateStr(d);const rows=db.trips.filter(t=>t.date===ds);const f=rows.reduce((v,t)=>v+tripGross(t),0),l=rows.reduce((v,t)=>v+tripLabor(t),0),n=f-l;tripFare+=f;tripLaborTotal+=l;tripNetTotal+=n;return `<tr><td>${weekDayNames[d.getDay()]}</td><td>${money(f)}</td><td>${money(l)}</td><td>${money(n)}</td></tr>`}).join('');
+$('reportDriverComm').textContent=money(tripFare*0.15);$('reportTripFare').textContent=money(tripFare);$('reportTripLabor').textContent=money(tripLaborTotal);$('reportTripNet').textContent=money(tripNetTotal);
+}
+
+function renderAll(){
+renderAttendance();
+renderTrips();
+renderReport();
+}
+
+function download(name,content,type){
+const blob=new Blob([content],{type});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');
+a.href=url;
+a.download=name;
+document.body.appendChild(a);
+a.click();
+a.remove();
+setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));
+document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===b.dataset.page));
+renderAll();
+}));
+
+$('saveAttendance').addEventListener('click',saveAttendance);
+
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderAll()});
+$('saveTrips').addEventListener('click',saveTrips);
+
+$('clearTrips').addEventListener('click',()=>{const dates=getWeekDates();if(!confirm('এই সপ্তাহের সব ট্রিপের হিসাবের ঘর খালি করবেন? সেভ করা হিসাব মুছতে প্রতিদিনের ক্লিন বাটন ব্যবহার করুন।'))return;renderTripWeek();document.querySelectorAll('.trip-entry input').forEach(i=>{if(i.classList.contains('destination'))i.value='';else i.value='0'});document.querySelectorAll('.trip-entry .material').forEach(i=>i.selectedIndex=0);calcTripBoxes();toast('ফর্মের ঘর খালি করা হয়েছে');});
+
+$('exportJson').addEventListener('click',()=>{
+db.workers=workers;
+download('hisab-backup-'+today()+'.json',JSON.stringify(db,null,2),'application/json');
+});
+
+$('exportCsv').addEventListener('click',()=>{
+const rows=[
+['তারিখ','শ্রমিক','কাজের ধরন','হাজিরা','বেতন','অগ্রিম','পাওনা'],
+...db.attendance.map(a=>[a.date,a.name,a.type,a.present,a.wage,a.advance,a.net])
+];
+const csv='\ufeff'+rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+download('hajira-'+today()+'.csv',csv,'text/csv;charset=utf-8');
+});
+
+$('importFile').addEventListener('change',async e=>{
+const f=e.target.files[0];
+if(!f)return;
+try{
+const d=JSON.parse(await f.text());
+if(!d||typeof d!=='object'||(!Array.isArray(d.attendance)&&!Array.isArray(d.trips)))throw Error();
+if(confirm('ব্যাকআপের ডেটা দিয়ে বর্তমান ডেটা প্রতিস্থাপন করবেন? তার আগে বর্তমান ডেটার একটি নিরাপদ কপি ডাউনলোড হবে।')){
+safetyCopy('restore-er-ager-data');
+db=normalizeDb(d);
+workers=db.workers;
+persist();
+initWorkers();
+toast('ব্যাকআপ ফিরিয়ে আনা হয়েছে');
+}
+}catch(err){
+toast('সঠিক JSON ব্যাকআপ ফাইল নির্বাচন করুন');
+}
+e.target.value='';
+});
+
+$('wipeData').addEventListener('click',()=>{
+if(confirm('সব হাজিরা ও ট্রিপের ডেটা স্থায়ীভাবে মুছে ফেলবেন? মোছার আগে একটি নিরাপদ কপি ডাউনলোড হবে।')){
+safetyCopy('muchar-ager-data');
+db={attendance:[],trips:[],workers};
+persist();
+toast('সব ডেটা মুছে ফেলা হয়েছে');
+}
+});
+
+load();
+initWorkers();
+initTrips();
+renderAll();
+</script>
+</body>
+</html>

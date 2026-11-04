@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.TripErHisab" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#FF1258C9</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">#FFFFFFFF</item>
+        <item name="android:windowBackground">#FFF3F6FB</item>
+    </style>
+</resources>
